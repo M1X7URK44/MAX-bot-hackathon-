@@ -1,15 +1,12 @@
-// src/index.ts
+import { Bot } from '@maxhub/max-bot-api';
 import dotenv from 'dotenv';
-import axios from 'axios';
+
+// Types
+import type { Config } from "./types/config.type";
+import { User } from '@maxhub/max-bot-api/types';
 
 // Загружаем переменные окружения
 dotenv.config();
-
-// Интерфейс для типизации конфигурации
-interface Config {
-  apiToken: string;
-  nodeEnv: string;
-}
 
 // Валидация и получение конфигурации
 const getConfig = (): Config => {
@@ -26,49 +23,28 @@ const getConfig = (): Config => {
 };
 
 
-class BotClient {
-  private apiToken: string;
-  private baseURL: string;
+const botConfig = getConfig();
+const bot = new Bot(botConfig.apiToken); // Токен, полученный при регистрации бота в MAX
 
-  constructor(apiToken: string,
-              baseURL: string = 'https://platform-api.max.ru') {
-    this.apiToken = apiToken;
-    this.baseURL = baseURL;
+// Устанавливает список команд, который пользователь будет видеть в чате с ботом
+bot.api.setMyCommands([
+  {
+    name: 'start',
+    description: 'Поприветствовать бота',
+  },
+]);
+
+// Обработчик команды '/start'
+bot.command('start', (ctx) => {
+  const user = ctx.user as User | undefined;
+
+  if (user) {
+    // Если пользователя не получилось определить, просто поздороваемся 
+    return ctx.reply(`Привет, ${user.name}! ✨`);
   }
 
-  // GET запрос
-  async getMe(): Promise<JSON[]> {
-    try {
-      const response = await axios.get<JSON[]>(`${this.baseURL}/me`, {
-        headers: {
-          'Authorization': this.apiToken,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      throw error;
-    }
-  }
-}
+  // Если пользователя определён, поздороваемся адресно
+  return ctx.reply(`Привет! ✨`);
+});
 
-// Основная функция
-async function main() {
-  const config = getConfig();
-
-  const bot = new BotClient(
-    config.apiToken
-  );
-
-  try {
-    // Получаем информацию о боте
-    console.log('[INFO] Get me...');
-    const me = await bot.getMe();
-    console.log(me);
-  } catch (error) {
-    console.error('[ERROR] ', error);
-  }
-}
-
-// Запуск скрипта
-main();
+bot.start(); // Запускает получение обновлений
