@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 // Types
 import type { Config } from "./types/config.type";
 import { User } from '@maxhub/max-bot-api/types';
+import { InlineKeyboardAttachment } from '@maxhub/max-bot-api/types';
 
 // Загружаем переменные окружения
 dotenv.config();
@@ -45,6 +46,39 @@ bot.command('start', (ctx) => {
 
   // Если пользователя определён, поздороваемся адресно
   return ctx.reply(`Привет! ✨`);
+});
+
+bot.command('menu', (ctx) => {
+  const inlineKeyboard: InlineKeyboardAttachment = {
+    type: 'inline_keyboard',
+    payload: {
+      buttons: [
+        [
+          { 
+            type: 'callback',
+            text: 'Кнопка 1', 
+            payload: 'button_1'  // callback_data
+          },
+          { 
+            type: 'callback',
+            text: 'Кнопка 2', 
+            payload: 'button_2'
+          }
+        ],
+        [
+          { 
+            type: 'link',
+            text: 'Открыть сайт', 
+            url: 'https://ya.ru'
+          }
+        ]
+      ]
+    }
+  };
+
+  return ctx.reply('Главное меню:', {
+      attachments: [inlineKeyboard]  // ← Клавиатура как вложение
+    });
 });
 
 bot.start(); // Запускает получение обновлений
